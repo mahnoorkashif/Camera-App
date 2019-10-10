@@ -44,6 +44,7 @@ class ViewController: UIViewController {
     }
 }
 
+
 extension ViewController {
     @IBAction func captureImage(_ sender: UIButton) {
         let photoSettings = AVCapturePhotoSettings()
@@ -103,6 +104,8 @@ extension ViewController {
             videoPreviewLayer?.videoGravity = AVLayerVideoGravity.resizeAspectFill
 
             cameraView.layer.addSublayer(videoPreviewLayer!)
+            
+            
             captureSession.startRunning()
             
         } catch {
@@ -139,18 +142,33 @@ extension ViewController: AVCapturePhotoCaptureDelegate {
         }
         if let dataImage = photo.fileDataRepresentation() {
             if let image = UIImage(data: dataImage) {
-                let croppedImage = squareCropImageToSideLength(sourceImage: image, sideLength: view.frame.size.width)
-                capturedImage.image = croppedImage
-                UIImageWriteToSavedPhotosAlbum(croppedImage, nil, nil, nil)
+                var croppedImage = UIImage()
+                var orientedImage = UIImage()
+                let orientation = UIDevice.current.orientation
+                croppedImage = squareCropImageToSideLength(sourceImage: image, width: cameraWidth.constant, height: cameraHeight.constant)
+                guard let croppedCg = croppedImage.cgImage else { return}
+                if orientation == .landscapeLeft {
+                    orientedImage = UIImage(cgImage: croppedCg, scale: 1, orientation: .left)
+                } else if orientation == .landscapeRight {
+                     orientedImage = UIImage(cgImage: croppedCg, scale: 1, orientation: .right)
+                } else if orientation == .portraitUpsideDown {
+                    orientedImage = UIImage(cgImage: croppedCg, scale: 1, orientation: .down)
+                } else {
+                    orientedImage = croppedImage
+                }
+                capturedImage.image = orientedImage
+                UIImageWriteToSavedPhotosAlbum(orientedImage, nil, nil, nil)
             }
         }
     }
     
-    private func squareCropImageToSideLength(sourceImage: UIImage, sideLength: CGFloat) -> UIImage {
+    private func squareCropImageToSideLength(sourceImage: UIImage, width: CGFloat, height: CGFloat) -> UIImage {
         let inputSize: CGSize = sourceImage.size
-        let sideLength: CGFloat = ceil(sideLength)
-        let outputSize: CGSize = CGSize(width: sideLength, height: 500)
-        let scale: CGFloat = max(sideLength / inputSize.width, sideLength / inputSize.height)
+        let width: CGFloat = ceil(width)
+        let height: CGFloat = ceil(height)
+        var outputSize: CGSize = .zero
+        outputSize = CGSize(width: width, height: height)
+        let scale: CGFloat = max(width / inputSize.width, height / inputSize.height)
         let scaledInputSize: CGSize = CGSize(width: inputSize.width * scale, height: inputSize.height * scale)
         let center: CGPoint = CGPoint(x: outputSize.width/2.0, y: outputSize.height/2.0)
         let outputRect: CGRect = CGRect(x: center.x - scaledInputSize.width/2.0, y: center.y - scaledInputSize.height/2.0, width: scaledInputSize.width, height: scaledInputSize.height)
