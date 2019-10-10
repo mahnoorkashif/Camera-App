@@ -127,15 +127,6 @@ extension ViewController {
 
 extension ViewController: AVCapturePhotoCaptureDelegate {
     
-    func croppedImage(_ image: UIImage, _ rect: CGRect) -> UIImage {
-        UIGraphicsBeginImageContextWithOptions(rect.size, false, image.scale)
-        image.draw(at: CGPoint(x: -rect.origin.x, y: -rect.origin.y))
-        guard let ci = UIGraphicsGetImageFromCurrentImageContext() else { return UIImage() }
-        UIGraphicsEndImageContext()
-        return ci
-    }
-
-    
     func photoOutput(_ output: AVCapturePhotoOutput, didFinishProcessingPhoto photo: AVCapturePhoto, error: Error?) {
         if let error = error {
             print("error occured : \(error.localizedDescription)")
@@ -145,7 +136,7 @@ extension ViewController: AVCapturePhotoCaptureDelegate {
                 var croppedImage = UIImage()
                 var orientedImage = UIImage()
                 let orientation = UIDevice.current.orientation
-                croppedImage = squareCropImageToSideLength(sourceImage: image, width: cameraWidth.constant, height: cameraHeight.constant)
+                croppedImage = cropImage(sourceImage: image, width: cameraWidth.constant, height: cameraHeight.constant)
                 guard let croppedCg = croppedImage.cgImage else { return}
                 if orientation == .landscapeLeft {
                     orientedImage = UIImage(cgImage: croppedCg, scale: 1, orientation: .left)
@@ -162,7 +153,7 @@ extension ViewController: AVCapturePhotoCaptureDelegate {
         }
     }
     
-    private func squareCropImageToSideLength(sourceImage: UIImage, width: CGFloat, height: CGFloat) -> UIImage {
+    private func cropImage(sourceImage: UIImage, width: CGFloat, height: CGFloat) -> UIImage {
         let inputSize: CGSize = sourceImage.size
         let width: CGFloat = ceil(width)
         let height: CGFloat = ceil(height)
