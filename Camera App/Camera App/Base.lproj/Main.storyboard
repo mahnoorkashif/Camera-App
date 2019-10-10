@@ -1,0 +1,96 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<document type="com.apple.InterfaceBuilder3.CocoaTouch.Storyboard.XIB" version="3.0" toolsVersion="14868" targetRuntime="iOS.CocoaTouch" propertyAccessControl="none" useAutolayout="YES" useTraitCollections="YES" useSafeAreas="YES" colorMatched="YES" initialViewController="BYZ-38-t0r">
+    <device id="retina6_5" orientation="portrait" appearance="light"/>
+    <dependencies>
+        <deployment identifier="iOS"/>
+        <plugIn identifier="com.apple.InterfaceBuilder.IBCocoaTouchPlugin" version="14824"/>
+        <capability name="Safe area layout guides" minToolsVersion="9.0"/>
+        <capability name="documents saved in the Xcode 8 format" minToolsVersion="8.0"/>
+    </dependencies>
+    <scenes>
+        <!--View Controller-->
+        <scene sceneID="tne-QT-ifu">
+            <objects>
+                <viewController id="BYZ-38-t0r" customClass="ViewController" customModule="Camera_App" customModuleProvider="target" sceneMemberID="viewController">
+                    <view key="view" contentMode="scaleToFill" id="8bC-Xf-vdC">
+                        <rect key="frame" x="0.0" y="0.0" width="414" height="896"/>
+                        <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
+                        <subviews>
+                            <view contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="KRc-Ye-dvZ">
+                                <rect key="frame" x="207" y="448" width="0.0" height="0.0"/>
+                                <color key="backgroundColor" systemColor="systemRedColor" red="1" green="0.23137254900000001" blue="0.18823529410000001" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
+                                <constraints>
+                                    <constraint firstAttribute="height" id="HtI-d2-eo9"/>
+                                    <constraint firstAttribute="width" id="vOE-Ni-UOr"/>
+                                </constraints>
+                            </view>
+                            <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="roundedRect" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="PM2-1D-qo6">
+                                <rect key="frame" x="177" y="772" width="60" height="60"/>
+                                <color key="backgroundColor" white="1" alpha="1" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
+                                <constraints>
+                                    <constraint firstAttribute="width" constant="60" id="GgS-cl-o8h" userLabel="width = 60"/>
+                                    <constraint firstAttribute="height" constant="60" id="geO-8M-VrC" userLabel="height = 60"/>
+                                </constraints>
+                                <connections>
+                                    <action selector="captureImage:" destination="BYZ-38-t0r" eventType="touchUpInside" id="jVJ-FG-F94"/>
+                                </connections>
+                            </button>
+                            <imageView clipsSubviews="YES" userInteractionEnabled="NO" contentMode="scaleAspectFill" horizontalHuggingPriority="251" verticalHuggingPriority="251" translatesAutoresizingMaskIntoConstraints="NO" id="3Q0-TG-SRF">
+                                <rect key="frame" x="20" y="782" width="40" height="40"/>
+                                <color key="backgroundColor" systemColor="secondaryLabelColor" red="0.23529411759999999" green="0.23529411759999999" blue="0.26274509800000001" alpha="0.59999999999999998" colorSpace="custom" customColorSpace="sRGB"/>
+                                <constraints>
+                                    <constraint firstAttribute="width" constant="40" id="cU3-2R-bLK"/>
+                                    <constraint firstAttribute="height" constant="40" id="ujR-86-pqa"/>
+                                </constraints>
+                            </imageView>
+                            <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="roundedRect" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="egc-In-f02">
+                                <rect key="frame" x="346" y="787" width="48" height="30"/>
+                                <color key="backgroundColor" systemColor="secondaryLabelColor" red="0.23529411759999999" green="0.23529411759999999" blue="0.26274509800000001" alpha="0.59999999999999998" colorSpace="custom" customColorSpace="sRGB"/>
+                                <state key="normal" title="  Rear  ">
+                                    <color key="titleColor" white="1" alpha="1" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
+                                </state>
+                                <connections>
+                                    <action selector="switchCamera:" destination="BYZ-38-t0r" eventType="touchUpInside" id="trc-bb-DzB"/>
+                                </connections>
+                            </button>
+                            <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="roundedRect" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="Bmv-CS-bul">
+                                <rect key="frame" x="165.66666666666666" y="54" width="83" height="30"/>
+                                <color key="backgroundColor" systemColor="secondaryLabelColor" red="0.23529411759999999" green="0.23529411759999999" blue="0.26274509800000001" alpha="0.59999999999999998" colorSpace="custom" customColorSpace="sRGB"/>
+                                <state key="normal" title="  Flash: Off  ">
+                                    <color key="titleColor" white="1" alpha="1" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
+                                </state>
+                                <connections>
+                                    <action selector="changeFlashStatus:" destination="BYZ-38-t0r" eventType="touchUpInside" id="n29-Fj-KRz"/>
+                                </connections>
+                            </button>
+                        </subviews>
+                        <constraints>
+                            <constraint firstItem="Bmv-CS-bul" firstAttribute="centerX" secondItem="8bC-Xf-vdC" secondAttribute="centerX" id="DeF-gt-6DO"/>
+                            <constraint firstItem="6Tk-OE-BBY" firstAttribute="bottom" secondItem="PM2-1D-qo6" secondAttribute="bottom" constant="30" id="GHd-yI-YOA"/>
+                            <constraint firstItem="Bmv-CS-bul" firstAttribute="top" secondItem="6Tk-OE-BBY" secondAttribute="top" constant="10" id="Hbh-Z1-dVp"/>
+                            <constraint firstItem="KRc-Ye-dvZ" firstAttribute="centerX" secondItem="8bC-Xf-vdC" secondAttribute="centerX" id="Mei-dN-S3x"/>
+                            <constraint firstItem="egc-In-f02" firstAttribute="centerY" secondItem="PM2-1D-qo6" secondAttribute="centerY" id="O7m-jd-MmS"/>
+                            <constraint firstItem="KRc-Ye-dvZ" firstAttribute="centerY" secondItem="8bC-Xf-vdC" secondAttribute="centerY" id="Uge-ig-FUB"/>
+                            <constraint firstItem="PM2-1D-qo6" firstAttribute="centerX" secondItem="8bC-Xf-vdC" secondAttribute="centerX" id="Yam-zG-sgd"/>
+                            <constraint firstItem="3Q0-TG-SRF" firstAttribute="centerY" secondItem="PM2-1D-qo6" secondAttribute="centerY" id="lM9-2j-8f1"/>
+                            <constraint firstItem="6Tk-OE-BBY" firstAttribute="trailing" secondItem="egc-In-f02" secondAttribute="trailing" constant="20" id="oVG-PY-w23"/>
+                            <constraint firstItem="3Q0-TG-SRF" firstAttribute="leading" secondItem="6Tk-OE-BBY" secondAttribute="leading" constant="20" id="zZ3-QV-y88"/>
+                        </constraints>
+                        <viewLayoutGuide key="safeArea" id="6Tk-OE-BBY"/>
+                    </view>
+                    <connections>
+                        <outlet property="cameraHeight" destination="HtI-d2-eo9" id="zvF-tr-iuB"/>
+                        <outlet property="cameraMode" destination="egc-In-f02" id="JER-zn-fx7"/>
+                        <outlet property="cameraView" destination="KRc-Ye-dvZ" id="lq0-Sj-H3N"/>
+                        <outlet property="cameraWidth" destination="vOE-Ni-UOr" id="eTb-an-bzV"/>
+                        <outlet property="capturedImage" destination="3Q0-TG-SRF" id="IdS-Ee-4ds"/>
+                        <outlet property="flashStatus" destination="Bmv-CS-bul" id="sva-6Q-UNH"/>
+                        <outlet property="takePhoto" destination="PM2-1D-qo6" id="2kw-JF-S20"/>
+                    </connections>
+                </viewController>
+                <placeholder placeholderIdentifier="IBFirstResponder" id="dkx-z0-nzr" sceneMemberID="firstResponder"/>
+            </objects>
+            <point key="canvasLocation" x="68.115942028985515" y="87.053571428571431"/>
+        </scene>
+    </scenes>
+</document>
