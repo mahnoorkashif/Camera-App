@@ -22,12 +22,14 @@ class ViewController: UIViewController {
     var captureSession                  = AVCaptureSession()
     var videoPreviewLayer               : AVCaptureVideoPreviewLayer?
     var capturePhotoOutput              = AVCapturePhotoOutput()
+    var flashMode                       = AVCaptureDevice.FlashMode.off
+    
+    let heightforcamera                 : CGFloat = 450
     
     override func viewDidLoad() {
         super.viewDidLoad()
         initButton()
-        cameraWidth.constant = view.frame.width
-        cameraHeight.constant = 450
+        setOrientation()
         initUI(.back)
         addOutput()
     }
@@ -46,10 +48,27 @@ class ViewController: UIViewController {
 
 
 extension ViewController {
+    func setOrientation() {
+        let orientation = UIApplication.shared.statusBarOrientation
+        if orientation == .portrait {
+            cameraWidth.constant = view.frame.width
+            cameraHeight.constant = heightforcamera
+        } else if orientation == .landscapeRight || orientation == .landscapeLeft {
+            cameraWidth.constant = heightforcamera
+            cameraHeight.constant = view.frame.height
+        } else {
+            cameraWidth.constant = view.frame.width
+            cameraHeight.constant = heightforcamera
+        }
+    }
+    
     @IBAction func captureImage(_ sender: UIButton) {
         let photoSettings = AVCapturePhotoSettings()
         photoSettings.isAutoStillImageStabilizationEnabled = true
         photoSettings.isHighResolutionPhotoEnabled = true
+        if capturePhotoOutput.supportedFlashModes.contains(AVCaptureDevice.FlashMode(rawValue: self.flashMode.rawValue)!) {
+            photoSettings.flashMode = self.flashMode
+        }
         capturePhotoOutput.capturePhoto(with: photoSettings, delegate: self)
     }
     
@@ -71,16 +90,18 @@ extension ViewController {
     }
     
     @IBAction func changeFlashStatus(_ sender: Any) {
-        guard let input: AVCaptureInput = captureSession.inputs.first else { return }
-        guard let currentInput = input as? AVCaptureDeviceInput else { return }
-        let captureDevice = currentInput.device
-        if (captureDevice.hasTorch) {
-            do { try captureDevice.lockForConfiguration() } catch {}
-            let torchOn = !captureDevice.isTorchActive
-            do { try captureDevice.setTorchModeOn(level: 1.0) } catch {}
-            captureDevice.torchMode = torchOn ? AVCaptureDevice.TorchMode.on : AVCaptureDevice.TorchMode.off
-            flashStatus.setTitle(torchOn ? "  Flash: On  " : "  Flash: Off  ", for: .normal)
-            captureDevice.unlockForConfiguration()
+        switch flashMode {
+        case .off:
+            flashMode = .on
+            flashStatus.setTitle("  Flash: On  ", for: .normal)
+        case .on:
+            flashMode = .off
+            flashStatus.setTitle("  Flash: Off  ", for: .normal)
+        case .auto:
+            flashMode = .off
+            flashStatus.setTitle("  Flash: Off  ", for: .normal)
+        @unknown default:
+            break
         }
     }
 }
@@ -93,7 +114,6 @@ extension ViewController {
     
     func initUI(_ position: AVCaptureDevice.Position) {
         guard let captureDevice = AVCaptureDevice.default(.builtInWideAngleCamera, for: .video, position: position ) else { return }
-        
         do {
             let input = try AVCaptureDeviceInput(device: captureDevice)
             captureSession.addInput(input)
@@ -105,7 +125,7 @@ extension ViewController {
 
             cameraView.layer.addSublayer(videoPreviewLayer!)
             
-            
+            captureSession.commitConfiguration()
             captureSession.startRunning()
             
         } catch {
@@ -128,6 +148,7 @@ extension ViewController {
 extension ViewController: AVCapturePhotoCaptureDelegate {
     
     func photoOutput(_ output: AVCapturePhotoOutput, didFinishProcessingPhoto photo: AVCapturePhoto, error: Error?) {
+        AudioServicesDisposeSystemSoundID(1108)
         if let error = error {
             print("error occured : \(error.localizedDescription)")
         }
@@ -136,17 +157,35 @@ extension ViewController: AVCapturePhotoCaptureDelegate {
                 var croppedImage = UIImage()
                 var orientedImage = UIImage()
                 let orientation = UIDevice.current.orientation
+                
                 croppedImage = cropImage(sourceImage: image, width: cameraWidth.constant, height: cameraHeight.constant)
-                guard let croppedCg = croppedImage.cgImage else { return}
-                if orientation == .landscapeLeft {
-                    orientedImage = UIImage(cgImage: croppedCg, scale: 1, orientation: .left)
-                } else if orientation == .landscapeRight {
-                     orientedImage = UIImage(cgImage: croppedCg, scale: 1, orientation: .right)
-                } else if orientation == .portraitUpsideDown {
-                    orientedImage = UIImage(cgImage: croppedCg, scale: 1, orientation: .down)
-                } else {
-                    orientedImage = croppedImage
+                guard let croppedCg = croppedImage.cgImage else { return }
+                
+                guard let input: AVCaptureInput = captureSession.inputs.first else { return }
+                guard let currentInput = input as? AVCaptureDeviceInput else { return}
+                
+                if currentInput.device.position == .back {
+                    if orientation == .landscapeLeft {
+                        orientedImage = UIImage(cgImage: croppedCg, scale: 1, orientation: .left)
+                    } else if orientation == .landscapeRight {
+                         orientedImage = UIImage(cgImage: croppedCg, scale: 1, orientation: .right)
+                    } else if orientation == .portraitUpsideDown {
+                        orientedImage = UIImage(cgImage: croppedCg, scale: 1, orientation: .down)
+                    } else {
+                        orientedImage = croppedImage
+                    }
+                } else if currentInput.device.position == .front {
+                    if orientation == .landscapeLeft {
+                        orientedImage = UIImage(cgImage: croppedCg, scale: 1, orientation: .right)
+                    } else if orientation == .landscapeRight {
+                         orientedImage = UIImage(cgImage: croppedCg, scale: 1, orientation: .left)
+                    } else if orientation == .portraitUpsideDown {
+                        orientedImage = UIImage(cgImage: croppedCg, scale: 1, orientation: .down)
+                    } else {
+                        orientedImage = croppedImage
+                    }
                 }
+                
                 capturedImage.image = orientedImage
                 UIImageWriteToSavedPhotosAlbum(orientedImage, nil, nil, nil)
             }
