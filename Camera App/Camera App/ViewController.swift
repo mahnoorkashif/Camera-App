@@ -9,11 +9,17 @@
 import UIKit
 import AVFoundation
 
+enum CameraMode {
+    case photo
+    case video
+}
+
 class ViewController: UIViewController {
     @IBOutlet weak var cameraView       : UIView!
     @IBOutlet weak var takePhoto        : UIButton!
-    @IBOutlet weak var cameraMode       : UIButton!
+    @IBOutlet weak var cameraPosition   : UIButton!
     @IBOutlet weak var flashStatus      : UIButton!
+    @IBOutlet weak var cameraMode       : UIButton!
     @IBOutlet weak var capturedImage    : UIImageView!
     
     @IBOutlet weak var cameraHeight     : NSLayoutConstraint!
@@ -24,15 +30,19 @@ class ViewController: UIViewController {
     var capturePhotoOutput              = AVCapturePhotoOutput()
     var flashMode                       = AVCaptureDevice.FlashMode.off
     
+    let movieOutput                     = AVCaptureMovieFileOutput()
+    
     let heightforcamera                 : CGFloat = 450
     
-    var image                           : UIImage = UIImage()
+    var image                           : UIImage?
+    
+    var mode                            : CameraMode = .photo
     
     override func viewDidLoad() {
         super.viewDidLoad()
         initButton()
         setOrientation()
-        initUI(.back)
+        initPhotoUI(.back)
         addOutput()
         viewImage()
     }
@@ -85,30 +95,43 @@ extension ViewController {
         }
     }
     
-    @IBAction func captureImage(_ sender: UIButton) {
-        let photoSettings = AVCapturePhotoSettings()
-        photoSettings.isAutoStillImageStabilizationEnabled = true
-        photoSettings.isHighResolutionPhotoEnabled = true
-        if capturePhotoOutput.supportedFlashModes.contains(AVCaptureDevice.FlashMode(rawValue: self.flashMode.rawValue)!) {
-            photoSettings.flashMode = self.flashMode
+    @IBAction func capture(_ sender: UIButton) {
+        if mode == .photo {
+            let photoSettings = AVCapturePhotoSettings()
+            photoSettings.isAutoStillImageStabilizationEnabled = true
+            photoSettings.isHighResolutionPhotoEnabled = true
+            if capturePhotoOutput.supportedFlashModes.contains(AVCaptureDevice.FlashMode(rawValue: self.flashMode.rawValue)!) {
+                photoSettings.flashMode = self.flashMode
+            }
+            capturePhotoOutput.capturePhoto(with: photoSettings, delegate: self)
+        } else if mode == .video {
+            recordVideo()
         }
-        capturePhotoOutput.capturePhoto(with: photoSettings, delegate: self)
     }
     
     @IBAction func switchCamera(_ sender: UIButton) {
         guard let input: AVCaptureInput = captureSession.inputs.first else { return }
-        guard let currentInput = input as? AVCaptureDeviceInput else { return}
-        
-        if currentInput.device.position == .back {
-            removeInputs()
-            captureSession.stopRunning()
-            initUI(.front)
-            cameraMode.setTitle("  Front  ", for: .normal)
-        } else if currentInput.device.position == .front {
-            removeInputs()
-            captureSession.stopRunning()
-            initUI(.back)
-            cameraMode.setTitle("  Rear  ", for: .normal)
+        guard let currentInput = input as? AVCaptureDeviceInput else { return }
+        removeInputs()
+        captureSession.stopRunning()
+        if mode == .photo {
+            if currentInput.device.position == .back {
+                initPhotoUI(.front)
+                cameraPosition.setTitle("  Front  ", for: .normal)
+            } else if currentInput.device.position == .front {
+                initPhotoUI(.back)
+                cameraPosition.setTitle("  Rear  ", for: .normal)
+            }
+        } else if mode == .video {
+            initVideoUI()
+            if currentInput.device.position == .back {
+                initVideoUI()
+                cameraPosition.setTitle("  Front  ", for: .normal)
+            }
+            else if currentInput.device.position == .front {
+                initVideoUI()
+                cameraPosition.setTitle("  Rear  ", for: .normal)
+            }
         }
     }
     
@@ -127,6 +150,16 @@ extension ViewController {
             break
         }
     }
+    
+    @IBAction func switchCameraMode(_ sender: Any) {
+        if mode == .photo {
+            mode = .video
+            cameraMode.setTitle("  Video  ", for: .normal)
+        } else if mode == .video {
+            mode = .photo
+            cameraMode.setTitle("  Photo  ", for: .normal)
+        }
+    }
 }
 
 extension ViewController {
@@ -135,7 +168,7 @@ extension ViewController {
         takePhoto.layer.masksToBounds = true
     }
     
-    func initUI(_ position: AVCaptureDevice.Position) {
+    func initPhotoUI(_ position: AVCaptureDevice.Position) {
         guard let captureDevice = AVCaptureDevice.default(.builtInWideAngleCamera, for: .video, position: position ) else { return }
         do {
             let input = try AVCaptureDeviceInput(device: captureDevice)
@@ -156,9 +189,29 @@ extension ViewController {
         }
     }
     
+    func initVideoUI() {
+        removeInputs()
+        captureSession.sessionPreset = AVCaptureSession.Preset.high
+        let camera = AVCaptureDevice.default(for: AVMediaType.video)!
+        do {
+            let input = try AVCaptureDeviceInput(device: camera)
+            if captureSession.canAddInput(input) {
+                captureSession.addInput(input)
+            }
+        } catch {
+            print("Error setting device video input: \(error)")
+        }
+        if !captureSession.isRunning {
+            DispatchQueue.main.async {
+                self.captureSession.startRunning()
+            }
+        }
+    }
+    
     func addOutput() {
         capturePhotoOutput.isHighResolutionCaptureEnabled = true
         captureSession.addOutput(capturePhotoOutput)
+        captureSession.addOutput(movieOutput)
     }
     
     func removeInputs() {
@@ -166,6 +219,82 @@ extension ViewController {
             captureSession.removeInput(input)
         }
     }
+    
+    func videoURL() -> URL? {
+        let directory = NSTemporaryDirectory() as NSString
+
+        if directory != "" {
+            let path = directory.appendingPathComponent(NSUUID().uuidString + ".mp4")
+            return URL(fileURLWithPath: path)
+        }
+
+        return nil
+    }
+    
+    func currentVideoOrientation() -> AVCaptureVideoOrientation {
+       var orientation: AVCaptureVideoOrientation
+
+       switch UIDevice.current.orientation {
+           case .portrait:
+               orientation = AVCaptureVideoOrientation.portrait
+           case .landscapeRight:
+               orientation = AVCaptureVideoOrientation.landscapeLeft
+           case .portraitUpsideDown:
+               orientation = AVCaptureVideoOrientation.portraitUpsideDown
+           default:
+                orientation = AVCaptureVideoOrientation.landscapeRight
+        }
+
+        return orientation
+    }
+    
+    func recordVideo() {
+        if movieOutput.isRecording == false {
+            takePhoto.backgroundColor = UIColor.red
+            let connection = movieOutput.connection(with: AVMediaType.video)
+
+            if (connection?.isVideoOrientationSupported)! {
+                connection?.videoOrientation = currentVideoOrientation()
+            }
+
+            if (connection?.isVideoStabilizationSupported)! {
+                connection?.preferredVideoStabilizationMode = AVCaptureVideoStabilizationMode.auto
+            }
+                
+            guard let input: AVCaptureInput = captureSession.inputs.first else { return }
+            guard let currentInput = input as? AVCaptureDeviceInput else { return }
+
+            if (currentInput.device.isSmoothAutoFocusSupported) {
+                do {
+                    try currentInput.device.lockForConfiguration()
+                    currentInput.device.isSmoothAutoFocusEnabled = false
+                    currentInput.device.unlockForConfiguration()
+                } catch {
+                   print("Error setting configuration: \(error)")
+                }
+            }
+            guard let outputURL = videoURL() else { return }
+            movieOutput.startRecording(to: outputURL, recordingDelegate: self)
+        } else {
+            if movieOutput.isRecording == true {
+                takePhoto.backgroundColor = UIColor.white
+                movieOutput.stopRecording()
+            }
+        }
+    }
+}
+
+extension ViewController: AVCaptureFileOutputRecordingDelegate {
+    func fileOutput(_ output: AVCaptureFileOutput, didFinishRecordingTo outputFileURL: URL, from connections: [AVCaptureConnection], error: Error?) {
+        if (error != nil) {
+            print("Error recording movie: \(error!.localizedDescription)")
+        } else {
+//            performSegue(withIdentifier: "showVideo", sender: outputFileURL)
+            UISaveVideoAtPathToSavedPhotosAlbum(outputFileURL.path, nil, nil, nil)
+        }
+    }
+    
+    
 }
 
 extension ViewController: AVCapturePhotoCaptureDelegate {

@@ -32,7 +32,7 @@
                                     <constraint firstAttribute="height" constant="60" id="geO-8M-VrC" userLabel="height = 60"/>
                                 </constraints>
                                 <connections>
-                                    <action selector="captureImage:" destination="BYZ-38-t0r" eventType="touchUpInside" id="jVJ-FG-F94"/>
+                                    <action selector="capture:" destination="BYZ-38-t0r" eventType="touchUpInside" id="jVJ-FG-F94"/>
                                 </connections>
                             </button>
                             <imageView clipsSubviews="YES" userInteractionEnabled="NO" contentMode="scaleAspectFill" horizontalHuggingPriority="251" verticalHuggingPriority="251" translatesAutoresizingMaskIntoConstraints="NO" id="3Q0-TG-SRF">
@@ -54,7 +54,7 @@
                                 </connections>
                             </button>
                             <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="roundedRect" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="Bmv-CS-bul">
-                                <rect key="frame" x="165.66666666666666" y="54" width="83" height="30"/>
+                                <rect key="frame" x="10" y="54" width="83" height="30"/>
                                 <color key="backgroundColor" systemColor="secondaryLabelColor" red="0.23529411764705882" green="0.23529411764705882" blue="0.2627450980392157" alpha="0.59999999999999998" colorSpace="custom" customColorSpace="sRGB"/>
                                 <state key="normal" title="  Flash: Off  ">
                                     <color key="titleColor" white="1" alpha="1" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
@@ -63,24 +63,37 @@
                                     <action selector="changeFlashStatus:" destination="BYZ-38-t0r" eventType="touchUpInside" id="n29-Fj-KRz"/>
                                 </connections>
                             </button>
+                            <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="roundedRect" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="I0v-C2-hlc">
+                                <rect key="frame" x="347" y="54" width="57" height="30"/>
+                                <color key="backgroundColor" systemColor="secondaryLabelColor" red="0.23529411764705882" green="0.23529411764705882" blue="0.2627450980392157" alpha="0.59999999999999998" colorSpace="custom" customColorSpace="sRGB"/>
+                                <state key="normal" title="  Photo  ">
+                                    <color key="titleColor" white="1" alpha="1" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
+                                </state>
+                                <connections>
+                                    <action selector="switchCameraMode:" destination="BYZ-38-t0r" eventType="touchUpInside" id="wLo-Xk-PgR"/>
+                                </connections>
+                            </button>
                         </subviews>
                         <constraints>
-                            <constraint firstItem="Bmv-CS-bul" firstAttribute="centerX" secondItem="8bC-Xf-vdC" secondAttribute="centerX" id="DeF-gt-6DO"/>
                             <constraint firstItem="6Tk-OE-BBY" firstAttribute="bottom" secondItem="PM2-1D-qo6" secondAttribute="bottom" constant="30" id="GHd-yI-YOA"/>
                             <constraint firstItem="Bmv-CS-bul" firstAttribute="top" secondItem="6Tk-OE-BBY" secondAttribute="top" constant="10" id="Hbh-Z1-dVp"/>
                             <constraint firstItem="KRc-Ye-dvZ" firstAttribute="centerX" secondItem="8bC-Xf-vdC" secondAttribute="centerX" id="Mei-dN-S3x"/>
                             <constraint firstItem="egc-In-f02" firstAttribute="centerY" secondItem="PM2-1D-qo6" secondAttribute="centerY" id="O7m-jd-MmS"/>
                             <constraint firstItem="KRc-Ye-dvZ" firstAttribute="centerY" secondItem="8bC-Xf-vdC" secondAttribute="centerY" id="Uge-ig-FUB"/>
+                            <constraint firstItem="I0v-C2-hlc" firstAttribute="top" secondItem="6Tk-OE-BBY" secondAttribute="top" constant="10" id="Wlm-at-NWd"/>
+                            <constraint firstItem="Bmv-CS-bul" firstAttribute="leading" secondItem="6Tk-OE-BBY" secondAttribute="leading" constant="10" id="XDr-Fb-k74"/>
                             <constraint firstItem="PM2-1D-qo6" firstAttribute="centerX" secondItem="8bC-Xf-vdC" secondAttribute="centerX" id="Yam-zG-sgd"/>
                             <constraint firstItem="3Q0-TG-SRF" firstAttribute="centerY" secondItem="PM2-1D-qo6" secondAttribute="centerY" id="lM9-2j-8f1"/>
                             <constraint firstItem="6Tk-OE-BBY" firstAttribute="trailing" secondItem="egc-In-f02" secondAttribute="trailing" constant="20" id="oVG-PY-w23"/>
+                            <constraint firstItem="6Tk-OE-BBY" firstAttribute="trailing" secondItem="I0v-C2-hlc" secondAttribute="trailing" constant="10" id="pmC-GX-Jua"/>
                             <constraint firstItem="3Q0-TG-SRF" firstAttribute="leading" secondItem="6Tk-OE-BBY" secondAttribute="leading" constant="20" id="zZ3-QV-y88"/>
                         </constraints>
                         <viewLayoutGuide key="safeArea" id="6Tk-OE-BBY"/>
                     </view>
                     <connections>
                         <outlet property="cameraHeight" destination="HtI-d2-eo9" id="zvF-tr-iuB"/>
-                        <outlet property="cameraMode" destination="egc-In-f02" id="JER-zn-fx7"/>
+                        <outlet property="cameraMode" destination="I0v-C2-hlc" id="DNn-IH-XuT"/>
+                        <outlet property="cameraPosition" destination="egc-In-f02" id="JER-zn-fx7"/>
                         <outlet property="cameraView" destination="KRc-Ye-dvZ" id="lq0-Sj-H3N"/>
                         <outlet property="cameraWidth" destination="vOE-Ni-UOr" id="eTb-an-bzV"/>
                         <outlet property="capturedImage" destination="3Q0-TG-SRF" id="IdS-Ee-4ds"/>
