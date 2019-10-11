@@ -33,7 +33,7 @@ class ViewController: UIViewController {
     
     let movieOutput                     = AVCaptureMovieFileOutput()
     
-    let heightforcamera                 : CGFloat = 450
+    var heightforcamera                 : CGFloat?
     
     var image                           : UIImage?
     
@@ -47,6 +47,7 @@ class ViewController: UIViewController {
     
     override func viewDidLoad() {
         super.viewDidLoad()
+        heightforcamera = view.frame.height
         initButton()
         setOrientation()
         initPhotoUI(.back)
@@ -92,13 +93,13 @@ extension ViewController {
         let orientation = UIApplication.shared.statusBarOrientation
         if orientation == .portrait {
             cameraWidth.constant = view.frame.width
-            cameraHeight.constant = heightforcamera
+            cameraHeight.constant = heightforcamera!
         } else if orientation == .landscapeRight || orientation == .landscapeLeft {
-            cameraWidth.constant = heightforcamera
+            cameraWidth.constant = heightforcamera!
             cameraHeight.constant = view.frame.height
         } else {
             cameraWidth.constant = view.frame.width
-            cameraHeight.constant = heightforcamera
+            cameraHeight.constant = heightforcamera!
         }
     }
     
@@ -160,10 +161,10 @@ extension ViewController {
     @IBAction func switchCameraMode(_ sender: Any) {
         if mode == .photo {
             mode = .video
-            cameraMode.setTitle("  Video  ", for: .normal)
+            cameraMode.setTitle("  Photo  ", for: .normal)
         } else if mode == .video {
             mode = .photo
-            cameraMode.setTitle("  Photo  ", for: .normal)
+            cameraMode.setTitle("  Video  ", for: .normal)
         }
     }
 }
