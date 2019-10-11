@@ -39,6 +39,8 @@ class ViewController: UIViewController {
     
     var mode                            : CameraMode = .photo
     
+    
+    
     var counterSecond                   = 0
     var counterMinute                   = 0
     var counterHour                     = 0
@@ -53,6 +55,24 @@ class ViewController: UIViewController {
         initPhotoUI(.back)
         addOutput()
         viewImage()
+        
+    }
+    
+    @objc func long(recognizer: UILongPressGestureRecognizer) {
+        if (recognizer.state == UIGestureRecognizer.State.began)
+        {
+           print("Long press")
+        }
+        else
+        {
+            if (recognizer.state == UIGestureRecognizer.State.cancelled
+                || recognizer.state == UIGestureRecognizer.State.failed
+                || recognizer.state == UIGestureRecognizer.State.ended)
+            {
+               print("Long press end")
+            }
+        }
+        
     }
     
     override func viewWillTransition(to size: CGSize, with coordinator: UIViewControllerTransitionCoordinator) {
@@ -90,6 +110,8 @@ extension ViewController {
     }
     
     func setOrientation() {
+        let longGesture = UILongPressGestureRecognizer(target: self, action: #selector(long(recognizer:)))
+        takePhoto.addGestureRecognizer(longGesture)
         let orientation = UIApplication.shared.statusBarOrientation
         if orientation == .portrait {
             cameraWidth.constant = view.frame.width
