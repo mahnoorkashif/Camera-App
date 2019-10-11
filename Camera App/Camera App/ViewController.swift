@@ -26,12 +26,15 @@ class ViewController: UIViewController {
     
     let heightforcamera                 : CGFloat = 450
     
+    var image                           : UIImage = UIImage()
+    
     override func viewDidLoad() {
         super.viewDidLoad()
         initButton()
         setOrientation()
         initUI(.back)
         addOutput()
+        viewImage()
     }
     
     override func viewWillTransition(to size: CGSize, with coordinator: UIViewControllerTransitionCoordinator) {
@@ -44,10 +47,30 @@ class ViewController: UIViewController {
           context.viewController(forKey: UITransitionContextViewControllerKey.from)
         }, completion: nil)
     }
+    
+    override func prepare(for segue: UIStoryboardSegue, sender: Any?) {
+        if segue.identifier == "viewCapturedImage" {
+            guard let vc = segue.destination as? ImageViewController else { return }
+            vc.image = self.image
+        }
+    }
 }
 
 
 extension ViewController {
+    func viewImage() {
+        let singleTap = UITapGestureRecognizer(target: self, action: Selector(("tapDetected")))
+        singleTap.numberOfTapsRequired = 1
+        capturedImage.isUserInteractionEnabled = true
+        capturedImage.addGestureRecognizer(singleTap)
+    }
+    
+    @objc func tapDetected() {
+        if image != nil {
+            performSegue(withIdentifier: "viewCapturedImage", sender: nil)
+        }
+    }
+    
     func setOrientation() {
         let orientation = UIApplication.shared.statusBarOrientation
         if orientation == .portrait {
@@ -186,6 +209,7 @@ extension ViewController: AVCapturePhotoCaptureDelegate {
                     }
                 }
                 
+                self.image = orientedImage
                 capturedImage.image = orientedImage
                 UIImageWriteToSavedPhotosAlbum(orientedImage, nil, nil, nil)
             }
