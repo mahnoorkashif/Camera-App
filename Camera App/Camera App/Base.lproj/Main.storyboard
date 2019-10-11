@@ -73,8 +73,16 @@
                                     <action selector="switchCameraMode:" destination="BYZ-38-t0r" eventType="touchUpInside" id="wLo-Xk-PgR"/>
                                 </connections>
                             </button>
+                            <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="" textAlignment="natural" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="Hj3-od-J5a">
+                                <rect key="frame" x="207" y="54" width="0.0" height="30"/>
+                                <color key="backgroundColor" systemColor="secondaryLabelColor" red="0.23529411764705882" green="0.23529411764705882" blue="0.2627450980392157" alpha="0.59999999999999998" colorSpace="custom" customColorSpace="sRGB"/>
+                                <fontDescription key="fontDescription" type="system" pointSize="15"/>
+                                <color key="textColor" white="1" alpha="1" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
+                                <nil key="highlightedColor"/>
+                            </label>
                         </subviews>
                         <constraints>
+                            <constraint firstItem="Hj3-od-J5a" firstAttribute="bottom" secondItem="Bmv-CS-bul" secondAttribute="bottom" id="EbB-ue-POl"/>
                             <constraint firstItem="6Tk-OE-BBY" firstAttribute="bottom" secondItem="PM2-1D-qo6" secondAttribute="bottom" constant="30" id="GHd-yI-YOA"/>
                             <constraint firstItem="Bmv-CS-bul" firstAttribute="top" secondItem="6Tk-OE-BBY" secondAttribute="top" constant="10" id="Hbh-Z1-dVp"/>
                             <constraint firstItem="KRc-Ye-dvZ" firstAttribute="centerX" secondItem="8bC-Xf-vdC" secondAttribute="centerX" id="Mei-dN-S3x"/>
@@ -83,9 +91,14 @@
                             <constraint firstItem="I0v-C2-hlc" firstAttribute="top" secondItem="6Tk-OE-BBY" secondAttribute="top" constant="10" id="Wlm-at-NWd"/>
                             <constraint firstItem="Bmv-CS-bul" firstAttribute="leading" secondItem="6Tk-OE-BBY" secondAttribute="leading" constant="10" id="XDr-Fb-k74"/>
                             <constraint firstItem="PM2-1D-qo6" firstAttribute="centerX" secondItem="8bC-Xf-vdC" secondAttribute="centerX" id="Yam-zG-sgd"/>
+                            <constraint firstItem="Hj3-od-J5a" firstAttribute="centerX" secondItem="8bC-Xf-vdC" secondAttribute="centerX" id="eNe-z4-i7A"/>
+                            <constraint firstItem="Hj3-od-J5a" firstAttribute="bottom" secondItem="I0v-C2-hlc" secondAttribute="bottom" id="eqh-76-BxP"/>
+                            <constraint firstItem="Hj3-od-J5a" firstAttribute="top" secondItem="Bmv-CS-bul" secondAttribute="top" id="hyI-L8-Y7b"/>
+                            <constraint firstItem="Hj3-od-J5a" firstAttribute="top" secondItem="I0v-C2-hlc" secondAttribute="top" id="jWf-oT-3cK"/>
                             <constraint firstItem="3Q0-TG-SRF" firstAttribute="centerY" secondItem="PM2-1D-qo6" secondAttribute="centerY" id="lM9-2j-8f1"/>
                             <constraint firstItem="6Tk-OE-BBY" firstAttribute="trailing" secondItem="egc-In-f02" secondAttribute="trailing" constant="20" id="oVG-PY-w23"/>
                             <constraint firstItem="6Tk-OE-BBY" firstAttribute="trailing" secondItem="I0v-C2-hlc" secondAttribute="trailing" constant="10" id="pmC-GX-Jua"/>
+                            <constraint firstItem="Hj3-od-J5a" firstAttribute="top" secondItem="6Tk-OE-BBY" secondAttribute="top" constant="10" id="vxj-PY-wfl"/>
                             <constraint firstItem="3Q0-TG-SRF" firstAttribute="leading" secondItem="6Tk-OE-BBY" secondAttribute="leading" constant="20" id="zZ3-QV-y88"/>
                         </constraints>
                         <viewLayoutGuide key="safeArea" id="6Tk-OE-BBY"/>
@@ -99,6 +112,7 @@
                         <outlet property="capturedImage" destination="3Q0-TG-SRF" id="IdS-Ee-4ds"/>
                         <outlet property="flashStatus" destination="Bmv-CS-bul" id="sva-6Q-UNH"/>
                         <outlet property="takePhoto" destination="PM2-1D-qo6" id="2kw-JF-S20"/>
+                        <outlet property="timerLabel" destination="Hj3-od-J5a" id="yDP-6C-G8I"/>
                         <segue destination="Oje-Ng-wQV" kind="show" identifier="viewCapturedImage" id="AKY-21-mrD"/>
                     </connections>
                 </viewController>

@@ -21,6 +21,7 @@ class ViewController: UIViewController {
     @IBOutlet weak var flashStatus      : UIButton!
     @IBOutlet weak var cameraMode       : UIButton!
     @IBOutlet weak var capturedImage    : UIImageView!
+    @IBOutlet weak var timerLabel       : UILabel!
     
     @IBOutlet weak var cameraHeight     : NSLayoutConstraint!
     @IBOutlet weak var cameraWidth      : NSLayoutConstraint!
@@ -37,6 +38,12 @@ class ViewController: UIViewController {
     var image                           : UIImage?
     
     var mode                            : CameraMode = .photo
+    
+    var counterSecond                   = 0
+    var counterMinute                   = 0
+    var counterHour                     = 0
+    var timer                           = Timer()
+    var isPlaying                       = false
     
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -123,13 +130,12 @@ extension ViewController {
                 cameraPosition.setTitle("  Rear  ", for: .normal)
             }
         } else if mode == .video {
-            initVideoUI()
             if currentInput.device.position == .back {
-                initVideoUI()
+                initVideoUI(.front)
                 cameraPosition.setTitle("  Front  ", for: .normal)
             }
             else if currentInput.device.position == .front {
-                initVideoUI()
+                initVideoUI(.back)
                 cameraPosition.setTitle("  Rear  ", for: .normal)
             }
         }
@@ -169,7 +175,8 @@ extension ViewController {
     }
     
     func initPhotoUI(_ position: AVCaptureDevice.Position) {
-        guard let captureDevice = AVCaptureDevice.default(.builtInWideAngleCamera, for: .video, position: position ) else { return }
+        timerLabel.text = ""
+        guard let captureDevice = AVCaptureDevice.default(.builtInWideAngleCamera, for: .video, position: position) else { return }
         do {
             let input = try AVCaptureDeviceInput(device: captureDevice)
             captureSession.addInput(input)
@@ -189,10 +196,11 @@ extension ViewController {
         }
     }
     
-    func initVideoUI() {
+    func initVideoUI(_ position: AVCaptureDevice.Position) {
+        timerLabel.text = ""
         removeInputs()
         captureSession.sessionPreset = AVCaptureSession.Preset.high
-        let camera = AVCaptureDevice.default(for: AVMediaType.video)!
+        guard let camera = AVCaptureDevice.default(.builtInWideAngleCamera, for: .video, position: position) else { return }
         do {
             let input = try AVCaptureDeviceInput(device: camera)
             if captureSession.canAddInput(input) {
@@ -248,9 +256,32 @@ extension ViewController {
         return orientation
     }
     
+    @objc func UpdateTimer() {
+        counterSecond = counterSecond + 1
+        if counterSecond == 60 {
+            counterSecond = 0
+            counterMinute += 1
+            if counterMinute == 60 {
+                counterMinute = 0
+                counterHour += 1
+            }
+        }
+        timerLabel.text = "\(counterHour):\(counterMinute):\(counterSecond)"
+    }
+    
+    func setUserInteractions(_ type: Bool) {
+        flashStatus.isUserInteractionEnabled = type
+        cameraMode.isUserInteractionEnabled = type
+        cameraPosition.isUserInteractionEnabled = type
+        capturedImage.isUserInteractionEnabled = type
+    }
+    
     func recordVideo() {
         if movieOutput.isRecording == false {
             takePhoto.backgroundColor = UIColor.red
+            setUserInteractions(false)
+            timer = Timer.scheduledTimer(timeInterval: 1, target: self, selector: #selector(UpdateTimer), userInfo: nil, repeats: true)
+
             let connection = movieOutput.connection(with: AVMediaType.video)
 
             if (connection?.isVideoOrientationSupported)! {
@@ -279,6 +310,13 @@ extension ViewController {
             if movieOutput.isRecording == true {
                 takePhoto.backgroundColor = UIColor.white
                 movieOutput.stopRecording()
+                timer.invalidate()
+                isPlaying = false
+                counterSecond = 0
+                counterMinute = 0
+                counterHour = 0
+                timerLabel.text = ""
+                setUserInteractions(true)
             }
         }
     }
