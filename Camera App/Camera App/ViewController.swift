@@ -9,20 +9,16 @@
 import UIKit
 import AVFoundation
 
-enum CameraMode {
-    case photo
-    case video
-}
-
 class ViewController: UIViewController {
     @IBOutlet weak var cameraView       : UIView!
     @IBOutlet weak var takePhoto        : UIButton!
     @IBOutlet weak var cameraPosition   : UIButton!
     @IBOutlet weak var flashStatus      : UIButton!
-    @IBOutlet weak var cameraMode       : UIButton!
     @IBOutlet weak var capturedImage    : UIImageView!
     @IBOutlet weak var timerLabel       : UILabel!
     
+    @IBOutlet weak var btnHeight        : NSLayoutConstraint!
+    @IBOutlet weak var btnWidth         : NSLayoutConstraint!
     @IBOutlet weak var cameraHeight     : NSLayoutConstraint!
     @IBOutlet weak var cameraWidth      : NSLayoutConstraint!
     
@@ -37,10 +33,6 @@ class ViewController: UIViewController {
     
     var image                           : UIImage?
     
-    var mode                            : CameraMode = .photo
-    
-    
-    
     var counterSecond                   = 0
     var counterMinute                   = 0
     var counterHour                     = 0
@@ -52,24 +44,18 @@ class ViewController: UIViewController {
         heightforcamera = view.frame.height
         initButton()
         setOrientation()
-        initPhotoUI(.back)
+        initUI(.back)
         addOutput()
         viewImage()
         
     }
     
     @objc func long(recognizer: UILongPressGestureRecognizer) {
-        if (recognizer.state == UIGestureRecognizer.State.began)
-        {
-           print("Long press")
-        }
-        else
-        {
-            if (recognizer.state == UIGestureRecognizer.State.cancelled
-                || recognizer.state == UIGestureRecognizer.State.failed
-                || recognizer.state == UIGestureRecognizer.State.ended)
-            {
-               print("Long press end")
+        if (recognizer.state == UIGestureRecognizer.State.began) {
+            recordVideo()
+        } else {
+            if (recognizer.state == UIGestureRecognizer.State.cancelled || recognizer.state == UIGestureRecognizer.State.failed || recognizer.state == UIGestureRecognizer.State.ended) {
+                stopVideo()
             }
         }
         
@@ -112,31 +98,18 @@ extension ViewController {
     func setOrientation() {
         let longGesture = UILongPressGestureRecognizer(target: self, action: #selector(long(recognizer:)))
         takePhoto.addGestureRecognizer(longGesture)
-        let orientation = UIApplication.shared.statusBarOrientation
-        if orientation == .portrait {
-            cameraWidth.constant = view.frame.width
-            cameraHeight.constant = heightforcamera!
-        } else if orientation == .landscapeRight || orientation == .landscapeLeft {
-            cameraWidth.constant = heightforcamera!
-            cameraHeight.constant = view.frame.height
-        } else {
-            cameraWidth.constant = view.frame.width
-            cameraHeight.constant = heightforcamera!
-        }
+        cameraWidth.constant = view.frame.width
+        cameraHeight.constant = heightforcamera!
     }
     
     @IBAction func capture(_ sender: UIButton) {
-        if mode == .photo {
-            let photoSettings = AVCapturePhotoSettings()
-            photoSettings.isAutoStillImageStabilizationEnabled = true
-            photoSettings.isHighResolutionPhotoEnabled = true
-            if capturePhotoOutput.supportedFlashModes.contains(AVCaptureDevice.FlashMode(rawValue: self.flashMode.rawValue)!) {
-                photoSettings.flashMode = self.flashMode
-            }
-            capturePhotoOutput.capturePhoto(with: photoSettings, delegate: self)
-        } else if mode == .video {
-            recordVideo()
+        let photoSettings = AVCapturePhotoSettings()
+        photoSettings.isAutoStillImageStabilizationEnabled = true
+        photoSettings.isHighResolutionPhotoEnabled = true
+        if capturePhotoOutput.supportedFlashModes.contains(AVCaptureDevice.FlashMode(rawValue: self.flashMode.rawValue)!) {
+            photoSettings.flashMode = self.flashMode
         }
+        capturePhotoOutput.capturePhoto(with: photoSettings, delegate: self)
     }
     
     @IBAction func switchCamera(_ sender: UIButton) {
@@ -144,23 +117,12 @@ extension ViewController {
         guard let currentInput = input as? AVCaptureDeviceInput else { return }
         removeInputs()
         captureSession.stopRunning()
-        if mode == .photo {
-            if currentInput.device.position == .back {
-                initPhotoUI(.front)
-                cameraPosition.setTitle("  Front  ", for: .normal)
-            } else if currentInput.device.position == .front {
-                initPhotoUI(.back)
-                cameraPosition.setTitle("  Rear  ", for: .normal)
-            }
-        } else if mode == .video {
-            if currentInput.device.position == .back {
-                initVideoUI(.front)
-                cameraPosition.setTitle("  Front  ", for: .normal)
-            }
-            else if currentInput.device.position == .front {
-                initVideoUI(.back)
-                cameraPosition.setTitle("  Rear  ", for: .normal)
-            }
+        if currentInput.device.position == .back {
+            initUI(.front)
+            cameraPosition.setTitle("  Front  ", for: .normal)
+        } else if currentInput.device.position == .front {
+            initUI(.back)
+            cameraPosition.setTitle("  Rear  ", for: .normal)
         }
     }
     
@@ -179,30 +141,28 @@ extension ViewController {
             break
         }
     }
-    
-    @IBAction func switchCameraMode(_ sender: Any) {
-        if mode == .photo {
-            mode = .video
-            cameraMode.setTitle("  Photo  ", for: .normal)
-        } else if mode == .video {
-            mode = .photo
-            cameraMode.setTitle("  Video  ", for: .normal)
-        }
-    }
 }
 
 extension ViewController {
     func initButton() {
-        takePhoto.layer.cornerRadius = takePhoto.frame.size.width/2
+        takePhoto.layer.cornerRadius = btnWidth.constant / 2
         takePhoto.layer.masksToBounds = true
     }
     
-    func initPhotoUI(_ position: AVCaptureDevice.Position) {
+    func initUI(_ position: AVCaptureDevice.Position) {
         timerLabel.text = ""
         guard let captureDevice = AVCaptureDevice.default(.builtInWideAngleCamera, for: .video, position: position) else { return }
+        
+        guard let microphone = AVCaptureDevice.default(for: AVMediaType.audio) else { return }
         do {
             let input = try AVCaptureDeviceInput(device: captureDevice)
-            captureSession.addInput(input)
+            if captureSession.canAddInput(input) {
+                captureSession.addInput(input)
+            }
+            let micInput = try AVCaptureDeviceInput(device: microphone)
+            if captureSession.canAddInput(micInput) {
+                captureSession.addInput(micInput)
+            }
             videoPreviewLayer = AVCaptureVideoPreviewLayer(session: captureSession)
             
             view.layoutSubviews()
@@ -216,26 +176,6 @@ extension ViewController {
             
         } catch {
             print("Error")
-        }
-    }
-    
-    func initVideoUI(_ position: AVCaptureDevice.Position) {
-        timerLabel.text = ""
-        removeInputs()
-        captureSession.sessionPreset = AVCaptureSession.Preset.high
-        guard let camera = AVCaptureDevice.default(.builtInWideAngleCamera, for: .video, position: position) else { return }
-        do {
-            let input = try AVCaptureDeviceInput(device: camera)
-            if captureSession.canAddInput(input) {
-                captureSession.addInput(input)
-            }
-        } catch {
-            print("Error setting device video input: \(error)")
-        }
-        if !captureSession.isRunning {
-            DispatchQueue.main.async {
-                self.captureSession.startRunning()
-            }
         }
     }
     
@@ -258,13 +198,11 @@ extension ViewController {
             let path = directory.appendingPathComponent(NSUUID().uuidString + ".mp4")
             return URL(fileURLWithPath: path)
         }
-
         return nil
     }
     
     func currentVideoOrientation() -> AVCaptureVideoOrientation {
        var orientation: AVCaptureVideoOrientation
-
        switch UIDevice.current.orientation {
            case .portrait:
                orientation = AVCaptureVideoOrientation.portrait
@@ -275,7 +213,6 @@ extension ViewController {
            default:
                 orientation = AVCaptureVideoOrientation.landscapeRight
         }
-
         return orientation
     }
     
@@ -289,20 +226,37 @@ extension ViewController {
                 counterHour += 1
             }
         }
-        timerLabel.text = "\(counterHour):\(counterMinute):\(counterSecond)"
+        timerLabel.text = "  \(counterHour):\(counterMinute):\(counterSecond)  "
+        timerLabel.text = "  \(counterHour):\(counterMinute):\(counterSecond)  "
     }
     
-    func setUserInteractions(_ type: Bool) {
-        flashStatus.isUserInteractionEnabled = type
-        cameraMode.isUserInteractionEnabled = type
-        cameraPosition.isUserInteractionEnabled = type
-        capturedImage.isUserInteractionEnabled = type
+    func stopVideo() {
+        if movieOutput.isRecording == true {
+            takePhoto.backgroundColor = UIColor.white
+            btnWidth.constant = 60
+            btnHeight.constant = 60
+            initButton()
+            takePhoto.layer.removeAllAnimations()
+            movieOutput.stopRecording()
+            timer.invalidate()
+            isPlaying = false
+            counterSecond = 0
+            counterMinute = 0
+            counterHour = 0
+            timerLabel.text = ""
+        }
     }
     
     func recordVideo() {
         if movieOutput.isRecording == false {
-            takePhoto.backgroundColor = UIColor.red
-            setUserInteractions(false)
+            self.takePhoto.backgroundColor = UIColor.red
+            self.btnWidth.constant = 80
+            self.btnHeight.constant = 80
+            UIView.animate(withDuration: 2, delay: 1, options: .repeat, animations: {
+                self.view.layoutSubviews()
+                self.initButton()
+            }, completion: nil)
+            
             timer = Timer.scheduledTimer(timeInterval: 1, target: self, selector: #selector(UpdateTimer), userInfo: nil, repeats: true)
 
             let connection = movieOutput.connection(with: AVMediaType.video)
@@ -330,17 +284,7 @@ extension ViewController {
             guard let outputURL = videoURL() else { return }
             movieOutput.startRecording(to: outputURL, recordingDelegate: self)
         } else {
-            if movieOutput.isRecording == true {
-                takePhoto.backgroundColor = UIColor.white
-                movieOutput.stopRecording()
-                timer.invalidate()
-                isPlaying = false
-                counterSecond = 0
-                counterMinute = 0
-                counterHour = 0
-                timerLabel.text = ""
-                setUserInteractions(true)
-            }
+            stopVideo()
         }
     }
 }
@@ -350,7 +294,6 @@ extension ViewController: AVCaptureFileOutputRecordingDelegate {
         if (error != nil) {
             print("Error recording movie: \(error!.localizedDescription)")
         } else {
-//            performSegue(withIdentifier: "showVideo", sender: outputFileURL)
             UISaveVideoAtPathToSavedPhotosAlbum(outputFileURL.path, nil, nil, nil)
         }
     }
