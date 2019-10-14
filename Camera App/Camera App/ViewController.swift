@@ -50,17 +50,6 @@ class ViewController: UIViewController {
         
     }
     
-    @objc func long(recognizer: UILongPressGestureRecognizer) {
-        if (recognizer.state == UIGestureRecognizer.State.began) {
-            recordVideo()
-        } else {
-            if (recognizer.state == UIGestureRecognizer.State.cancelled || recognizer.state == UIGestureRecognizer.State.failed || recognizer.state == UIGestureRecognizer.State.ended) {
-                stopVideo()
-            }
-        }
-        
-    }
-    
     override func viewWillTransition(to size: CGSize, with coordinator: UIViewControllerTransitionCoordinator) {
         let targetRotation = coordinator.targetTransform
         let inverseRotation = targetRotation.inverted()
@@ -102,6 +91,17 @@ extension ViewController {
         cameraHeight.constant = heightforcamera!
     }
     
+    @objc func long(recognizer: UILongPressGestureRecognizer) {
+        if (recognizer.state == UIGestureRecognizer.State.began) {
+            recordVideo()
+        } else {
+            if (recognizer.state == UIGestureRecognizer.State.cancelled || recognizer.state == UIGestureRecognizer.State.failed || recognizer.state == UIGestureRecognizer.State.ended) {
+                stopVideo()
+            }
+        }
+        
+    }
+    
     @IBAction func capture(_ sender: UIButton) {
         let photoSettings = AVCapturePhotoSettings()
         photoSettings.isAutoStillImageStabilizationEnabled = true
@@ -130,13 +130,13 @@ extension ViewController {
         switch flashMode {
         case .off:
             flashMode = .on
-            flashStatus.setTitle("  Flash: On  ", for: .normal)
+            flashStatus.setImage(#imageLiteral(resourceName: "flashOn"), for: .normal)
         case .on:
             flashMode = .off
-            flashStatus.setTitle("  Flash: Off  ", for: .normal)
+            flashStatus.setImage(#imageLiteral(resourceName: "flashOff"), for: .normal)
         case .auto:
-            flashMode = .off
-            flashStatus.setTitle("  Flash: Off  ", for: .normal)
+            flashMode = .auto
+            flashStatus.setTitle("  Flash: Auto  ", for: .normal)
         @unknown default:
             break
         }
@@ -147,6 +147,9 @@ extension ViewController {
     func initButton() {
         takePhoto.layer.cornerRadius = btnWidth.constant / 2
         takePhoto.layer.masksToBounds = true
+        
+        flashStatus.layer.cornerRadius = flashStatus.frame.width / 2
+        flashStatus.layer.masksToBounds = true
     }
     
     func initUI(_ position: AVCaptureDevice.Position) {
@@ -259,14 +262,14 @@ extension ViewController {
             
             timer = Timer.scheduledTimer(timeInterval: 1, target: self, selector: #selector(UpdateTimer), userInfo: nil, repeats: true)
 
-            let connection = movieOutput.connection(with: AVMediaType.video)
+            guard let connection = movieOutput.connection(with: AVMediaType.video) else { return }
 
-            if (connection?.isVideoOrientationSupported)! {
-                connection?.videoOrientation = currentVideoOrientation()
+            if (connection.isVideoOrientationSupported) {
+                connection.videoOrientation = currentVideoOrientation()
             }
 
-            if (connection?.isVideoStabilizationSupported)! {
-                connection?.preferredVideoStabilizationMode = AVCaptureVideoStabilizationMode.auto
+            if (connection.isVideoStabilizationSupported) {
+                connection.preferredVideoStabilizationMode = AVCaptureVideoStabilizationMode.auto
             }
                 
             guard let input: AVCaptureInput = captureSession.inputs.first else { return }
