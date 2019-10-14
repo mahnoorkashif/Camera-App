@@ -34,6 +34,8 @@ class ViewController: UIViewController {
     
     var image                           : UIImage?
     
+    @IBOutlet weak var flashTrailing    : NSLayoutConstraint!
+    @IBOutlet weak var flashTop         : NSLayoutConstraint!
     var counterSecond                   = 0
     var counterMinute                   = 0
     var counterHour                     = 0
@@ -51,6 +53,12 @@ class ViewController: UIViewController {
     }
     
     override func viewWillTransition(to size: CGSize, with coordinator: UIViewControllerTransitionCoordinator) {
+        
+//        if UIDevice.current.orientation == .landscapeLeft {
+//            view.removeConstraints([flashTrailing,flashTop])
+//            view.addConstraint(NSLayoutConstraint(item: flashStatus!, attribute: .left, relatedBy: .equal, toItem: view, attribute: .left, multiplier: 1, constant: 10))
+//            view.addConstraint(NSLayoutConstraint(item: flashStatus!, attribute: .bottom, relatedBy: .equal, toItem: self.view, attribute: .bottom, multiplier: 1, constant: 15))
+//        }
         let targetRotation = coordinator.targetTransform
         let inverseRotation = targetRotation.inverted()
 
@@ -76,6 +84,16 @@ extension ViewController {
         takePhoto.addGestureRecognizer(longGesture)
         cameraWidth.constant = view.frame.width
         cameraHeight.constant = heightforcamera!
+        
+//        if (UIApplication.shared.statusBarOrientation == .landscapeLeft) {
+//        }
+//        if UIApplication.shared.statusBarOrientation == .landscapeRight {
+//            view.removeConstraints([flashTrailing,flashTop])
+//            view.addConstraint(NSLayoutConstraint(item: flashStatus!, attribute: .left, relatedBy: .equal, toItem: view, attribute: .left, multiplier: 1, constant: 10))
+//            view.addConstraint(NSLayoutConstraint(item: flashStatus!, attribute: .bottom, relatedBy: .equal, toItem: self.view, attribute: .bottom, multiplier: 1, constant: 15))
+//        }
+//        if UIApplication.shared.statusBarOrientation == .portrait {
+//        }
     }
     
     @objc func long(recognizer: UILongPressGestureRecognizer) {
@@ -330,7 +348,6 @@ extension ViewController: AVCaptureFileOutputRecordingDelegate {
 
 extension ViewController: AVCapturePhotoCaptureDelegate {
     func photoOutput(_ output: AVCapturePhotoOutput, didFinishProcessingPhoto photo: AVCapturePhoto, error: Error?) {
-        AudioServicesDisposeSystemSoundID(1108)
         if let error = error {
             print("error occured : \(error.localizedDescription)")
         }

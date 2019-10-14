@@ -103,6 +103,8 @@
                         <outlet property="cameraWidth" destination="vOE-Ni-UOr" id="eTb-an-bzV"/>
                         <outlet property="capturedImage" destination="3Q0-TG-SRF" id="IdS-Ee-4ds"/>
                         <outlet property="flashStatus" destination="Bmv-CS-bul" id="sva-6Q-UNH"/>
+                        <outlet property="flashTop" destination="Hbh-Z1-dVp" id="gB8-jk-Gg8"/>
+                        <outlet property="flashTrailing" destination="WEF-Xs-w5J" id="8rz-qs-vY4"/>
                         <outlet property="takePhoto" destination="PM2-1D-qo6" id="2kw-JF-S20"/>
                         <outlet property="timerLabel" destination="Hj3-od-J5a" id="yDP-6C-G8I"/>
                         <segue destination="Oje-Ng-wQV" kind="show" identifier="viewCapturedImage" id="AKY-21-mrD"/>
