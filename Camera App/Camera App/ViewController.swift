@@ -26,6 +26,7 @@ class ViewController: UIViewController {
     var videoPreviewLayer               : AVCaptureVideoPreviewLayer?
     var capturePhotoOutput              = AVCapturePhotoOutput()
     var flashMode                       = AVCaptureDevice.FlashMode.off
+    var torchMode                       = AVCaptureDevice.TorchMode.off
     
     let movieOutput                     = AVCaptureMovieFileOutput()
     
@@ -47,7 +48,6 @@ class ViewController: UIViewController {
         initUI(.back)
         addOutput()
         viewImage()
-        
     }
     
     override func viewWillTransition(to size: CGSize, with coordinator: UIViewControllerTransitionCoordinator) {
@@ -71,19 +71,6 @@ class ViewController: UIViewController {
 
 
 extension ViewController {
-    func viewImage() {
-        let singleTap = UITapGestureRecognizer(target: self, action: Selector(("tapDetected")))
-        singleTap.numberOfTapsRequired = 1
-        capturedImage.isUserInteractionEnabled = true
-        capturedImage.addGestureRecognizer(singleTap)
-    }
-    
-    @objc func tapDetected() {
-        if image != nil {
-            performSegue(withIdentifier: "viewCapturedImage", sender: nil)
-        }
-    }
-    
     func setOrientation() {
         let longGesture = UILongPressGestureRecognizer(target: self, action: #selector(long(recognizer:)))
         takePhoto.addGestureRecognizer(longGesture)
@@ -102,48 +89,6 @@ extension ViewController {
         
     }
     
-    @IBAction func capture(_ sender: UIButton) {
-        let photoSettings = AVCapturePhotoSettings()
-        photoSettings.isAutoStillImageStabilizationEnabled = true
-        photoSettings.isHighResolutionPhotoEnabled = true
-        if capturePhotoOutput.supportedFlashModes.contains(AVCaptureDevice.FlashMode(rawValue: self.flashMode.rawValue)!) {
-            photoSettings.flashMode = self.flashMode
-        }
-        capturePhotoOutput.capturePhoto(with: photoSettings, delegate: self)
-    }
-    
-    @IBAction func switchCamera(_ sender: UIButton) {
-        guard let input: AVCaptureInput = captureSession.inputs.first else { return }
-        guard let currentInput = input as? AVCaptureDeviceInput else { return }
-        removeInputs()
-        captureSession.stopRunning()
-        if currentInput.device.position == .back {
-            initUI(.front)
-            cameraPosition.setTitle("  Front  ", for: .normal)
-        } else if currentInput.device.position == .front {
-            initUI(.back)
-            cameraPosition.setTitle("  Rear  ", for: .normal)
-        }
-    }
-    
-    @IBAction func changeFlashStatus(_ sender: Any) {
-        switch flashMode {
-        case .off:
-            flashMode = .on
-            flashStatus.setImage(#imageLiteral(resourceName: "flashOn"), for: .normal)
-        case .on:
-            flashMode = .off
-            flashStatus.setImage(#imageLiteral(resourceName: "flashOff"), for: .normal)
-        case .auto:
-            flashMode = .auto
-            flashStatus.setTitle("  Flash: Auto  ", for: .normal)
-        @unknown default:
-            break
-        }
-    }
-}
-
-extension ViewController {
     func initButton() {
         takePhoto.layer.cornerRadius = btnWidth.constant / 2
         takePhoto.layer.masksToBounds = true
@@ -204,6 +149,19 @@ extension ViewController {
         return nil
     }
     
+    func viewImage() {
+        let singleTap = UITapGestureRecognizer(target: self, action: Selector(("tapDetected")))
+        singleTap.numberOfTapsRequired = 1
+        capturedImage.isUserInteractionEnabled = true
+        capturedImage.addGestureRecognizer(singleTap)
+    }
+    
+    @objc func tapDetected() {
+        if image != nil {
+            performSegue(withIdentifier: "viewCapturedImage", sender: nil)
+        }
+    }
+    
     func currentVideoOrientation() -> AVCaptureVideoOrientation {
        var orientation: AVCaptureVideoOrientation
        switch UIDevice.current.orientation {
@@ -217,37 +175,6 @@ extension ViewController {
                 orientation = AVCaptureVideoOrientation.landscapeRight
         }
         return orientation
-    }
-    
-    @objc func UpdateTimer() {
-        counterSecond = counterSecond + 1
-        if counterSecond == 60 {
-            counterSecond = 0
-            counterMinute += 1
-            if counterMinute == 60 {
-                counterMinute = 0
-                counterHour += 1
-            }
-        }
-        timerLabel.text = "  \(counterHour):\(counterMinute):\(counterSecond)  "
-        timerLabel.text = "  \(counterHour):\(counterMinute):\(counterSecond)  "
-    }
-    
-    func stopVideo() {
-        if movieOutput.isRecording == true {
-            takePhoto.backgroundColor = UIColor.white
-            btnWidth.constant = 60
-            btnHeight.constant = 60
-            initButton()
-            takePhoto.layer.removeAllAnimations()
-            movieOutput.stopRecording()
-            timer.invalidate()
-            isPlaying = false
-            counterSecond = 0
-            counterMinute = 0
-            counterHour = 0
-            timerLabel.text = ""
-        }
     }
     
     func recordVideo() {
@@ -284,10 +211,109 @@ extension ViewController {
                    print("Error setting configuration: \(error)")
                 }
             }
+        
+            if (currentInput.device.isTorchAvailable) {
+                do {
+                    try currentInput.device.lockForConfiguration()
+                    currentInput.device.torchMode = self.torchMode
+                    currentInput.device.unlockForConfiguration()
+                } catch {
+                   print("Error setting configuration: \(error)")
+                }
+            }
+            
             guard let outputURL = videoURL() else { return }
             movieOutput.startRecording(to: outputURL, recordingDelegate: self)
         } else {
             stopVideo()
+        }
+    }
+    
+    @objc func UpdateTimer() {
+        counterSecond = counterSecond + 1
+        if counterSecond == 60 {
+            counterSecond = 0
+            counterMinute += 1
+            if counterMinute == 60 {
+                counterMinute = 0
+                counterHour += 1
+            }
+        }
+        timerLabel.text = "  \(counterHour):\(counterMinute):\(counterSecond)  "
+        timerLabel.text = "  \(counterHour):\(counterMinute):\(counterSecond)  "
+    }
+    
+    func stopVideo() {
+        if movieOutput.isRecording == true {
+            guard let input: AVCaptureInput = captureSession.inputs.first else { return }
+            guard let currentInput = input as? AVCaptureDeviceInput else { return }
+            if (currentInput.device.isTorchAvailable) {
+                do {
+                    try currentInput.device.lockForConfiguration()
+                    currentInput.device.torchMode = .off
+                    currentInput.device.unlockForConfiguration()
+                } catch {
+                   print("Error setting configuration: \(error)")
+                }
+            }
+            takePhoto.backgroundColor = UIColor.white
+            btnWidth.constant = 60
+            btnHeight.constant = 60
+            initButton()
+            takePhoto.layer.removeAllAnimations()
+            movieOutput.stopRecording()
+            timer.invalidate()
+            isPlaying = false
+            counterSecond = 0
+            counterMinute = 0
+            counterHour = 0
+            timerLabel.text = ""
+        }
+    }
+}
+
+extension ViewController {
+    
+    @IBAction func capture(_ sender: UIButton) {
+        let photoSettings = AVCapturePhotoSettings()
+        photoSettings.isAutoStillImageStabilizationEnabled = true
+        photoSettings.isHighResolutionPhotoEnabled = true
+        if capturePhotoOutput.supportedFlashModes.contains(AVCaptureDevice.FlashMode(rawValue: self.flashMode.rawValue)!) {
+            photoSettings.flashMode = self.flashMode
+        }
+        capturePhotoOutput.capturePhoto(with: photoSettings, delegate: self)
+    }
+    
+    @IBAction func switchCamera(_ sender: UIButton) {
+        guard let input: AVCaptureInput = captureSession.inputs.first else { return }
+        guard let currentInput = input as? AVCaptureDeviceInput else { return }
+        removeInputs()
+        captureSession.stopRunning()
+        if currentInput.device.position == .back {
+            initUI(.front)
+            cameraPosition.setTitle("  Front  ", for: .normal)
+        } else if currentInput.device.position == .front {
+            initUI(.back)
+            cameraPosition.setTitle("  Rear  ", for: .normal)
+        }
+    }
+    
+    @IBAction func changeFlashStatus(_ sender: Any) {
+        switch flashMode {
+        case .off:
+            flashMode = .on
+            torchMode = .on
+            flashStatus.setImage(#imageLiteral(resourceName: "flashOn"), for: .normal)
+        case .on:
+            flashMode = .off
+            torchMode = .off
+            flashStatus.setImage(#imageLiteral(resourceName: "flashOff"), for: .normal)
+        case .auto:
+            flashMode = .auto
+            torchMode = .auto
+            flashStatus.setTitle("  Flash: Auto  ", for: .normal)
+        @unknown default:
+            break
         }
     }
 }
@@ -300,12 +326,9 @@ extension ViewController: AVCaptureFileOutputRecordingDelegate {
             UISaveVideoAtPathToSavedPhotosAlbum(outputFileURL.path, nil, nil, nil)
         }
     }
-    
-    
 }
 
 extension ViewController: AVCapturePhotoCaptureDelegate {
-    
     func photoOutput(_ output: AVCapturePhotoOutput, didFinishProcessingPhoto photo: AVCapturePhoto, error: Error?) {
         AudioServicesDisposeSystemSoundID(1108)
         if let error = error {
