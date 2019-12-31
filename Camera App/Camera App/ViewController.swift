@@ -198,12 +198,17 @@ extension ViewController {
     func recordVideo() {
         if movieOutput.isRecording == false {
             self.takePhoto.backgroundColor = UIColor.red
-            self.btnWidth.constant = 80
-            self.btnHeight.constant = 80
-            UIView.animate(withDuration: 2, delay: 1, options: .repeat, animations: {
-                self.view.layoutSubviews()
-                self.initButton()
-            }, completion: nil)
+            
+            let animation = CABasicAnimation(keyPath: "transform.scale")
+            animation.fromValue = 1.0
+            animation.toValue = 1.5
+            animation.duration = 1.5
+            animation.fillMode = .forwards
+            animation.repeatCount = Float.infinity
+            animation.autoreverses = true
+            animation.isRemovedOnCompletion = false
+            
+            takePhoto.layer.add(animation, forKey: "transform.scale")
             
             timer = Timer.scheduledTimer(timeInterval: 1, target: self, selector: #selector(UpdateTimer), userInfo: nil, repeats: true)
 
@@ -275,9 +280,6 @@ extension ViewController {
                 }
             }
             takePhoto.backgroundColor = UIColor.white
-            btnWidth.constant = 60
-            btnHeight.constant = 60
-            initButton()
             takePhoto.layer.removeAllAnimations()
             movieOutput.stopRecording()
             timer.invalidate()
@@ -309,10 +311,8 @@ extension ViewController {
         captureSession.stopRunning()
         if currentInput.device.position == .back {
             initUI(.front)
-            cameraPosition.setTitle("  Front  ", for: .normal)
         } else if currentInput.device.position == .front {
             initUI(.back)
-            cameraPosition.setTitle("  Rear  ", for: .normal)
         }
     }
     
@@ -361,7 +361,7 @@ extension ViewController: AVCapturePhotoCaptureDelegate {
                 guard let croppedCg = croppedImage.cgImage else { return }
                 
                 guard let input: AVCaptureInput = captureSession.inputs.first else { return }
-                guard let currentInput = input as? AVCaptureDeviceInput else { return}
+                guard let currentInput = input as? AVCaptureDeviceInput else { return }
                 
                 if currentInput.device.position == .back {
                     if orientation == .landscapeLeft {
